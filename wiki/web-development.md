@@ -29,6 +29,8 @@
 - [CSS](#css)
 - [JavaScript](#javascript)
 - [CDN](#cdn)
+- [Troubleshooting](#troubleshooting)
+  - [Service is running but a request fails](#service-is-running-but-a-request-fails)
 
 ## Web server and web client
 
@@ -205,3 +207,12 @@ A feature flag (also called a feature toggle) is a mechanism that enables or dis
 ## CDN
 
 A `CDN` (`Content Delivery Network`) is a network of distributed servers that delivers static files (such as `HTML`, `CSS`, and `JavaScript`) to users from a location close to them. Serving files from a `CDN` reduces load on the origin server and improves response time.
+
+## Troubleshooting
+
+### Service is running but a request fails
+
+Verify both:
+
+1. The process is listening on the expected port.
+2. You are using the correct host and port in your request.
