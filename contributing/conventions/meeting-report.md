@@ -102,11 +102,11 @@ This applies across all sections.
 
 ### 2.11. Items as subsections
 
-Write each distinct item within a section — numbered decisions, open questions, action points, status update items, glossary terms, Q&A pairs, and discussions — as a Markdown subsection with a heading rather than a bullet list entry or blockquote.
+Write each distinct item within a section — decisions, open questions, action points, status update items, glossary terms, Q&A pairs, and discussions — as a Markdown subsection with a heading rather than a bullet list entry or blockquote.
 Write the content beneath the heading as prose paragraphs.
 This makes each item individually linkable via a Markdown anchor.
 Never use bold text to label items within a section.
-Each heading must use the format `### S.N. Label N: Title` — where `S.N.` is the two-level section number (e.g., `5.2.`), `Label` is the section label (`Decision`, `Open question`, `Action point`, `Key date`, `Deadline`, `Question and answer`, or `Discussion`), and `N` is the item number within that section (omitted for `Key date`, `Deadline`, `Question and answer`, and `Discussion`).
+Each heading must use the format `### S.N. Label N: Title` — where `S.N.` is the two-level section number (e.g., `5.2.`), `Label` is the section label (`Decision`, `Open question`, `Action point`, `Key date`, `Deadline`, `Question and answer`, or `Discussion`), and `N` is the item number within that section (omitted for `Decision`, `Key date`, `Deadline`, `Question and answer`, and `Discussion`).
 
 ### 2.12. Clean headings
 
@@ -117,8 +117,8 @@ Never append metadata to the heading or place it on a separate line before the p
 
 ### 2.13. Anchor links
 
-When cross-referencing a specific item in the report, link to its subsection anchor rather than using plain text (e.g., `[Decision 1](#51-decision-1-use-postgresql-for-the-primary-data-store)` instead of "See Decision 1").
-The anchor is derived from the full heading by lowercasing, removing punctuation, and replacing spaces with hyphens — so `### 5.1. Decision 1: Use PostgreSQL` becomes `#51-decision-1-use-postgresql`.
+When cross-referencing a specific item in the report, link to its subsection anchor rather than using plain text (e.g., `[Decision: Use PostgreSQL for the primary data store](#51-decision-use-postgresql-for-the-primary-data-store)` instead of "See Decision: Use PostgreSQL").
+The anchor is derived from the full heading by lowercasing, removing punctuation, and replacing spaces with hyphens — so `### 5.1. Decision: Use PostgreSQL` becomes `#51-decision-use-postgresql`.
 
 ### 2.14. Timestamps
 
@@ -176,7 +176,7 @@ A structured block at the top of the report:
 
 ### 4.4. Action points
 
-Concrete next steps with owners (by speaker label) and deadlines (if mentioned). Write each action point as a subsection heading in the format `### S.N. Action point N: Title` followed by a prose paragraph that states the owner, priority (**[blocking]**, **[high]**, **[medium]**, or **[low]**), scheduling details, and any relevant context. If a task was mentioned but no owner was assigned, say so in the prose. Do not place owner or priority on a separate bold-label line before the paragraph. Every action point originates from a decision, discussion, or open question — cross-reference the source item using an anchor link (e.g., `"Stems from [Decision 2](#52-decision-2-use-postgresql-for-the-primary-data-store)"`). If a single decision spawns multiple action points, each one should link back independently.
+Concrete next steps with owners (by speaker label) and deadlines (if mentioned). Write each action point as a subsection heading in the format `### S.N. Action point N: Title` followed by a prose paragraph that states the owner, priority (**[blocking]**, **[high]**, **[medium]**, or **[low]**), scheduling details, and any relevant context. If a task was mentioned but no owner was assigned, say so in the prose. Do not place owner or priority on a separate bold-label line before the paragraph. Every action point originates from a decision, discussion, or open question — cross-reference the source item using an anchor link (e.g., `"Stems from [Decision: Use PostgreSQL for the primary data store](#52-decision-use-postgresql-for-the-primary-data-store)"`). If a single decision spawns multiple action points, each one should link back independently.
 
 ### 4.5. Key dates
 
@@ -188,7 +188,7 @@ Deadlines mentioned during the meeting, even in passing. Write each deadline as 
 
 ### 4.7. Decisions
 
-**This is the largest section.** Number each decision. Every conclusion, agreement, or direction discussed should be its own numbered item — even small ones. Write each decision as a subsection heading in the format `### S.N. Decision N: Title`. Group decisions by topic, not by chronological order. For each decision, include:
+**This is the largest section.** Every conclusion, agreement, or direction discussed should be its own item — even small ones. Write each decision as a subsection heading in the format `### S.N. Decision: Title`. Group decisions by topic, not by chronological order. For each decision, include:
 
 - What was decided
 - **Consensus level**: State **unanimous**, **majority**, or **contentious** (note dissenters by speaker label) at the start of the paragraph body, not in the heading
@@ -204,7 +204,7 @@ Be exhaustive — capture every distinct decision, no matter how small. Cover al
 #### 4.7.1. Example format
 
 ```markdown
-### 5.1. Decision 1: Use PostgreSQL for the primary data store
+### 5.1. Decision: Use PostgreSQL for the primary data store
 
 **Consensus: unanimous.**
 Speaker A proposed PostgreSQL, citing its JSON support for flexible schemas. Speaker B initially suggested MongoDB but agreed after Speaker A demonstrated that PostgreSQL's JSONB columns would cover the same use case without adding a second database. Speaker C noted: "We already have operational expertise with Postgres, so this keeps the ops burden low." *(See [Action point 3](#73-action-point-3-deploy-database-migrations))*
