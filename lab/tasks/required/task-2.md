@@ -94,6 +94,8 @@ All on `localhost:42002`, require `Authorization: Bearer YOUR_LMS_API_KEY`:
 
 ## Verify
 
+### Test mode — happy path
+
 Run all commands on your VM:
 
 ```terminal
@@ -105,7 +107,24 @@ uv run bot.py --test "/labs"
 uv run bot.py --test "/scores lab-04"
 ```
 
-Each should print real data. Then test error handling — stop the backend and try again:
+**What to check:**
+- `/start` — contains a welcome message or bot name
+- `/help` — lists at least 4 commands with descriptions
+- `/health` — says "healthy" or shows item count (proves backend connection works)
+- `/labs` — lists real lab names from your backend
+- `/scores lab-04` — shows task names with percentages
+
+### Test mode — edge cases
+
+```terminal
+uv run bot.py --test "/scores"              # missing argument — should not crash
+uv run bot.py --test "/scores lab-99"       # non-existent lab — should handle gracefully
+uv run bot.py --test "/unknown"             # unknown command — should suggest /help
+```
+
+### Test mode — error handling
+
+Stop the backend and verify the bot handles it gracefully:
 
 ```terminal
 cd ~/se-toolkit-lab-7
@@ -115,18 +134,23 @@ cd ~/se-toolkit-lab-7
 docker compose --env-file .env.docker.secret start app
 ```
 
-You should see a friendly error message, not a Python traceback.
+The response must include the actual error (e.g., "connection refused") — not a raw traceback, and not a vague "something went wrong."
 
-## Deploy and verify in Telegram
+### Deploy and verify in Telegram
 
-Same flow as Task 1 — pull, restart, verify:
+Pull, restart, verify:
 
 ```terminal
 cd ~/se-toolkit-lab-7 && git pull
 cd bot && pkill -f "bot.py" 2>/dev/null; nohup uv run bot.py > bot.log 2>&1 &
 ```
 
-In Telegram, try `/health`, `/labs`, `/scores lab-04`. You should see real data from your backend.
+In Telegram, try:
+1. `/health` — should show backend status
+2. `/labs` — should list labs
+3. `/scores lab-04` — should show per-task scores
+
+If a command works in `--test` but not in Telegram, check `bot.log` — it's usually a handler that crashes only when called from the Telegram transport layer.
 
 ## Acceptance criteria
 

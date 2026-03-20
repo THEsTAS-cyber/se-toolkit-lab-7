@@ -70,7 +70,9 @@ Bot-specific Python project with dependencies. `cd bot && uv sync` must work wit
 
 ## Verify
 
-Run this on your VM:
+### Test mode
+
+Run on your VM:
 
 ```terminal
 cd ~/se-toolkit-lab-7/bot
@@ -78,11 +80,24 @@ uv sync
 uv run bot.py --test "/start"
 ```
 
-You should see a welcome message printed to the terminal. If it prints something and exits without errors — the scaffold works.
+You should see a welcome message printed to the terminal. If it prints something and exits with code 0 — the scaffold works.
 
-## Deploy and verify in Telegram
+Try the other commands too — they can return placeholder text for now, but they must not crash:
 
-After verifying with `--test`, deploy the bot on your VM and check it responds in Telegram. You'll repeat this after every task — it's how you know the bot actually works for real users, not just in test mode.
+```terminal
+uv run bot.py --test "/help"
+uv run bot.py --test "/health"
+uv run bot.py --test "/labs"
+```
+
+**What to check:**
+- Each command prints *something* to stdout (even "Not implemented yet" is fine for this task)
+- No Python tracebacks
+- Exit code is 0 (the command doesn't show an error)
+
+### Deploy and verify in Telegram
+
+After verifying with `--test`, deploy the bot on your VM and check it responds in Telegram. You'll repeat this pattern after every task — it's how you know the bot works for real users, not just in test mode.
 
 1. Push your changes and pull on the VM:
 
@@ -100,8 +115,13 @@ After verifying with `--test`, deploy the bot on your VM and check it responds i
 
 3. Open Telegram and send `/start` to your bot. You should see the welcome message.
 
-> [!TIP]
-> Check `bot.log` if the bot doesn't respond. Common issues: wrong `BOT_TOKEN`, missing `.env.bot.secret`.
+**If the bot doesn't respond in Telegram:**
+
+1. Check the log: `tail -20 bot.log`
+2. Common issues:
+   - `BOT_TOKEN` is wrong or missing in `.env.bot.secret`
+   - Another bot process is already running (check `ps aux | grep bot.py`)
+   - `.env.bot.secret` doesn't exist (copy from `.env.bot.example`)
 
 ## Acceptance criteria
 

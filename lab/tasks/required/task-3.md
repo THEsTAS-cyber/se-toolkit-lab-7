@@ -103,7 +103,9 @@ Add keyboard buttons so users can discover actions without typing. For example, 
 
 ## Verify
 
-Before testing, fill in the LLM fields in `.env.bot.secret` on your VM:
+### Setup
+
+Fill in the LLM fields in `.env.bot.secret` on your VM:
 
 ```terminal
 nano ~/se-toolkit-lab-7/.env.bot.secret
@@ -111,26 +113,105 @@ nano ~/se-toolkit-lab-7/.env.bot.secret
 
 Set `LLM_API_KEY`, `LLM_API_BASE_URL`, and `LLM_API_MODEL` (see setup step 1.9 for values).
 
-Then try these:
+Verify the LLM is reachable before testing the bot:
+
+```terminal
+curl -s http://localhost:42005/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_LLM_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"YOUR_MODEL","messages":[{"role":"user","content":"hi"}]}' | head -c 100
+```
+
+If this returns JSON with a response — the LLM is working. If it returns an error, fix the LLM connection first.
+
+### Debugging the tool calling loop
+
+The hardest part of this task is the tool calling loop. To see what's happening, add debug logging to your `route()` method using `print(..., file=sys.stderr)`. Since `--test` mode only sends the bot's response to stdout, stderr is your debug channel.
+
+Example of what debug output should look like:
+
+```terminal
+$ uv run bot.py --test "what labs are available"
+[tool] LLM called: get_items({})                    ← stderr
+[tool] Result: 44 items                              ← stderr
+[summary] Feeding 1 tool result back to LLM          ← stderr
+There are 6 main labs available:                      ← stdout (the actual response)
+1. Lab 01 – Products, Architecture & Roles
+...
+```
+
+For a multi-step query:
+
+```terminal
+$ uv run bot.py --test "which lab has the lowest pass rate"
+[tool] LLM called: get_items({})                     ← stderr
+[tool] Result: 44 items                               ← stderr
+[tool] LLM called: get_pass_rates({"lab":"lab-01"})  ← stderr
+[tool] Result: 8 tasks                                ← stderr
+[tool] LLM called: get_pass_rates({"lab":"lab-02"})  ← stderr
+[tool] Result: 4 tasks                                ← stderr
+...
+[summary] Feeding 7 tool results back to LLM          ← stderr
+Based on the data, Lab 02 has the lowest pass rate... ← stdout
+```
+
+If you don't see `[tool]` lines — the LLM isn't calling tools. If you see tools called but the answer is wrong — check what data came back.
+
+### Test mode — single-step queries
 
 ```terminal
 cd ~/se-toolkit-lab-7/bot
 uv run bot.py --test "what labs are available"
-uv run bot.py --test "which lab has the lowest pass rate"
+uv run bot.py --test "show me scores for lab 4"
 uv run bot.py --test "who are the top 5 students in lab 4"
-uv run bot.py --test "asdfgh"
+uv run bot.py --test "how many students are enrolled"
 ```
 
-The first three should return real answers with data from your backend. The last should return a helpful fallback, not a crash.
+Each should return real data from your backend. Check stderr to confirm the LLM is calling the right tool for each query.
 
-## Deploy and verify in Telegram
+### Test mode — multi-step queries
+
+These require the LLM to call multiple tools and reason across results:
+
+```terminal
+uv run bot.py --test "which lab has the lowest pass rate"
+uv run bot.py --test "which group is doing best in lab 3"
+```
+
+The first query should call `get_items` to get all labs, then `get_pass_rates` for each, then compare. If the LLM only calls `get_items` and stops — your tool result feedback loop isn't working.
+
+### Test mode — fallback and edge cases
+
+```terminal
+uv run bot.py --test "asdfgh"                # gibberish — helpful message, not crash
+uv run bot.py --test "hello"                 # greeting — friendly response
+uv run bot.py --test "lab 4"                 # ambiguous — should clarify what they want
+```
+
+### Common problems
+
+| Symptom | Likely cause |
+|---------|-------------|
+| "LLM error: HTTP 401" | LLM API key wrong or Qwen token expired. Test with `curl` first. |
+| LLM returns text instead of calling tools | System prompt doesn't encourage tool use, or tool descriptions are unclear. |
+| LLM calls wrong tool | Tool descriptions are ambiguous. Make them more specific. |
+| LLM calls `get_items` but doesn't continue | Tool results aren't being fed back. Check the conversation loop. |
+| Answer has no data, just "I don't have the information" | Tool results are in the conversation but the LLM isn't reading them. Check message format. |
+
+### Deploy and verify in Telegram
 
 ```terminal
 cd ~/se-toolkit-lab-7 && git pull
 cd bot && pkill -f "bot.py" 2>/dev/null; nohup uv run bot.py > bot.log 2>&1 &
 ```
 
-In Telegram, try sending plain text like "what labs are available?" (no `/` prefix). The bot should understand the question and respond with real data.
+In Telegram, try:
+1. "what labs are available?" — should list labs
+2. "show me scores for lab 4" — should show per-task data
+3. "which lab has the lowest pass rate" — should name a specific lab with a number
+4. "asdfgh" — should get a helpful response, not silence
+
+Check `bot.log` for the debug output — same `[tool]` lines you saw in `--test` mode.
 
 ## Acceptance criteria
 

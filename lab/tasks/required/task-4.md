@@ -45,6 +45,8 @@ Add a "Deploy" section to the project README explaining: required env vars, dock
 
 ## Verify
 
+### Build and start
+
 On your VM, stop the background bot process and switch to Docker:
 
 ```terminal
@@ -58,7 +60,41 @@ docker compose --env-file .env.docker.secret up --build -d
 docker compose --env-file .env.docker.secret ps
 ```
 
-You should see the `bot` service running alongside `app`, `postgres`, `caddy`. Then open Telegram and send `/start` — the bot should respond just like before, but now from inside a container.
+You should see the `bot` service running alongside `app`, `postgres`, `caddy`.
+
+### Check the bot container is healthy
+
+```terminal
+# Is it running?
+docker compose --env-file .env.docker.secret ps bot
+
+# Check logs for startup errors
+docker compose --env-file .env.docker.secret logs bot --tail 20
+```
+
+**What to look for in the logs:**
+- "Application started" — bot connected to Telegram successfully
+- "HTTP Request: POST .../getUpdates" — bot is polling for messages
+- No Python tracebacks
+
+### Verify in Telegram
+
+Send these in Telegram — everything that worked before should still work:
+
+1. `/start` — welcome message
+2. `/health` — backend status
+3. "what labs are available?" — natural language, LLM-powered
+4. "which lab has the lowest pass rate?" — multi-step reasoning
+
+### Common Docker problems
+
+| Symptom | Likely cause |
+|---------|-------------|
+| Bot container keeps restarting | Check logs: `docker compose logs bot`. Usually a missing env var or import error. |
+| `/health` fails but worked before | `LMS_API_URL` must be `http://app:8000` (not `localhost:42002`). Inside Docker, `localhost` is the container itself. |
+| LLM queries fail but worked before | `LLM_API_BASE_URL` must use `host.docker.internal` (not `localhost`). The qwen proxy is on a different Docker network. |
+| "BOT_TOKEN is required" error | Bot env vars need to be in `.env.docker.secret`, not just `.env.bot.secret`. |
+| Build fails at `uv sync --frozen` | `uv.lock` must be copied in the Dockerfile. Check your `COPY` commands. |
 
 ## Acceptance criteria
 
