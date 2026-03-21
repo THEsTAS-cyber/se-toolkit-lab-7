@@ -1,4 +1,15 @@
-"""Intent-based router for natural language queries."""
+"""Intent-based router for natural language queries.
+
+This module provides an LLM-powered intent router that:
+1. Receives natural language queries from users
+2. Uses an LLM to decide which tools to call
+3. Executes the tools and feeds results back to the LLM
+4. Returns a formatted response
+
+Tools (9 total):
+    get_items, get_learners, get_scores, get_pass_rates, get_timeline,
+    get_groups, get_top_learners, get_completion_rate, trigger_sync
+"""
 
 import logging
 import sys
@@ -18,6 +29,19 @@ from tools import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Explicit list of all 9 tools for discovery
+ALL_TOOLS = [
+    "get_items",
+    "get_learners", 
+    "get_scores",
+    "get_pass_rates",
+    "get_timeline",
+    "get_groups",
+    "get_top_learners",
+    "get_completion_rate",
+    "trigger_sync",
+]
 
 # System prompt for the LLM
 SYSTEM_PROMPT = """You are a helpful assistant for a Learning Management System (LMS).

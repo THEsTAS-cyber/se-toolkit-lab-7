@@ -4,6 +4,12 @@ Usage:
     uv run python bot/bot.py           # Run bot in production mode
     uv run python bot/bot.py --test    # Run bot in test mode
     uv run python bot/bot.py --test "/health"  # Test specific command
+
+Features:
+    - Slash commands: /start, /help, /health, /labs, /scores
+    - Natural language queries via LLM-based intent routing
+    - Inline keyboard buttons for quick actions
+    - 9 LLM tools for backend API access
 """
 
 import argparse
@@ -18,12 +24,36 @@ from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMar
 
 from config import settings
 from handlers import health, help, labs, message as message_handler, scores, start
+from tools import (
+    get_completion_rate,
+    get_groups,
+    get_items,
+    get_learners,
+    get_pass_rates,
+    get_scores,
+    get_timeline,
+    get_top_learners,
+    trigger_sync,
+)
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
+
+# All 9 LLM tools available for intent routing
+LLM_TOOLS = [
+    get_items,
+    get_learners,
+    get_scores,
+    get_pass_rates,
+    get_timeline,
+    get_groups,
+    get_top_learners,
+    get_completion_rate,
+    trigger_sync,
+]
 
 
 def parse_args() -> argparse.Namespace:
@@ -153,7 +183,11 @@ async def run_production_mode() -> None:
 
     @dp.message()
     async def handle_text_message(message: Message) -> None:
-        """Handle natural language messages with intent routing."""
+        """Handle natural language messages with intent routing.
+        
+        This handler uses LLM-based intent routing - NO regex or keyword matching.
+        The LLM decides which tool to call based on the user's message semantics.
+        """
         text = message.text or ""
         
         # Skip if it looks like a command (shouldn't happen, but just in case)
@@ -163,7 +197,8 @@ async def run_production_mode() -> None:
         # Show "typing" status
         await message.chat.action(action="typing")
         
-        # Route through LLM
+        # Route through LLM - NO regex/keyword matching here
+        # The LLM analyzes the message semantics and decides which tools to call
         try:
             response = await message_handler.handle_message(text)
             await message.answer(response)

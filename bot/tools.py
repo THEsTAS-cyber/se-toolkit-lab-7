@@ -1,4 +1,12 @@
-"""LLM tools for backend API endpoints."""
+"""LLM tools for backend API endpoints.
+
+This module defines 9 tools that the LLM can call to interact with the backend API.
+Each tool is an async function that can be registered with the LLM client.
+
+Tools:
+    get_items, get_learners, get_scores, get_pass_rates, get_timeline,
+    get_groups, get_top_learners, get_completion_rate, trigger_sync
+"""
 
 import logging
 from typing import Any
@@ -13,6 +21,19 @@ from backend import (
 from config import settings
 
 logger = logging.getLogger(__name__)
+
+# List of all available tools for discovery
+__all__ = [
+    "get_items",
+    "get_learners",
+    "get_scores",
+    "get_pass_rates",
+    "get_timeline",
+    "get_groups",
+    "get_top_learners",
+    "get_completion_rate",
+    "trigger_sync",
+]
 
 
 async def get_items() -> list[dict[str, Any]]:

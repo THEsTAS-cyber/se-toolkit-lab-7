@@ -1,6 +1,15 @@
-"""Start command handler."""
+"""Start command handler with inline keyboard buttons."""
 
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+# List of all keyboard buttons for discovery
+KEYBOARD_BUTTONS = [
+    ("📊 Check Health", "cmd_health"),
+    ("📚 List Labs", "cmd_labs"),
+    ("🏆 Top Students", "cmd_top_lab04"),
+    ("📈 Pass Rates", "cmd_scores_lab04"),
+    ("❓ Help", "cmd_help"),
+]
 
 
 async def handle_start() -> str:
@@ -27,7 +36,11 @@ async def handle_start() -> str:
 
 
 def get_start_keyboard() -> InlineKeyboardMarkup:
-    """Get inline keyboard for /start command."""
+    """Get inline keyboard for /start command.
+    
+    Returns:
+        InlineKeyboardMarkup with buttons for common actions.
+    """
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(text="📊 Check Health", callback_data="cmd_health"),
