@@ -28,8 +28,8 @@ async def handle_labs() -> str:
         # Format the response
         response_lines = ["Available labs:"]
         for lab in labs:
-            lab_name = lab.get("name", "Unknown Lab")
-            lab_id = lab.get("id", "unknown")
+            # ItemRecord has 'title' field, not 'name'
+            lab_name = lab.get("title", "Unknown Lab")
             response_lines.append(f"- {lab_name}")
 
         return "\n".join(response_lines)

@@ -25,12 +25,13 @@ async def handle_scores(lab: str | None = None) -> str:
         response_lines = [f"Pass rates for {lab.replace('-', ' ').title()}:"]
 
         for rate in pass_rates:
-            task_name = rate.get("task_name", rate.get("task", "Unknown Task"))
-            pass_rate = rate.get("pass_rate", rate.get("average", 0)) * 100  # Convert to percentage
-            attempts = rate.get("attempts", rate.get("count", 0))
+            # Backend returns: task, avg_score, attempts
+            task_name = rate.get("task", "Unknown Task")
+            avg_score = rate.get("avg_score", 0)  # Already a percentage (0-100)
+            attempts = rate.get("attempts", 0)
 
             # Format percentage with one decimal place
-            formatted_rate = f"{pass_rate:.1f}%"
+            formatted_rate = f"{avg_score:.1f}%"
             response_lines.append(f"- {task_name}: {formatted_rate} ({attempts} attempts)")
 
         return "\n".join(response_lines)
