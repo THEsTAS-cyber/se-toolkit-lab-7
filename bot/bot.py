@@ -15,31 +15,15 @@ from typing import Any
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message
-from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from handlers import health, help, start
+from config import settings
+from handlers import health, help, labs, scores, start
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
-
-
-class BotSettings(BaseSettings):
-    """Bot configuration settings."""
-
-    model_config = SettingsConfigDict(env_file=".env.bot.secret", extra="ignore")
-
-    bot_token: str | None = None
-    lms_api_base_url: str | None = None
-    lms_api_key: str | None = None
-    llm_api_model: str = "coder-model"
-    llm_api_key: str | None = None
-    llm_api_base_url: str | None = None
-
-
-settings = BotSettings()
 
 
 def parse_args() -> argparse.Namespace:
@@ -65,6 +49,13 @@ async def handle_message(message: Message, command: str) -> None:
         response = await start.handle_start()
     elif command == "help":
         response = await help.handle_help()
+    elif command == "labs":
+        response = await labs.handle_labs()
+    elif command.startswith("scores"):
+        # Extract lab argument if present
+        parts = command.split(maxsplit=1)
+        lab = parts[1] if len(parts) > 1 else None
+        response = await scores.handle_scores(lab)
     else:
         response = f"Unknown command: {command}. Use /help for available commands."
 
@@ -83,12 +74,24 @@ async def run_test_mode(command: str | None = None) -> None:
         "health": health.handle_health,
         "start": start.handle_start,
         "help": help.handle_help,
+        "labs": labs.handle_labs,
     }
 
     if command:
         # Remove leading slash if present
         command = command.lstrip("/")
-        if command in handlers:
+        
+        if command.startswith("scores"):
+            # Extract lab argument if present
+            parts = command.split(maxsplit=1)
+            lab = parts[1] if len(parts) > 1 else None
+            logger.info(f"Testing handler: scores with lab={lab}")
+            response = await scores.handle_scores(lab)
+            print(f"\n{'='*50}")
+            print(f"Handler: scores {lab or ''}")
+            print(f"Response:\n{response}")
+            print(f"{'='*50}\n")
+        elif command in handlers:
             logger.info(f"Testing handler: {command}")
             response = await handlers[command]()
             print(f"\n{'='*50}")
@@ -98,7 +101,7 @@ async def run_test_mode(command: str | None = None) -> None:
         else:
             logger.error(f"Unknown command: {command}")
             print(f"Unknown command: {command}")
-            print(f"Available commands: {', '.join(handlers.keys())}")
+            print(f"Available commands: {', '.join(list(handlers.keys()) + ['scores <lab>'])}")
     else:
         # Run all handlers
         logger.info("Testing all handlers")
@@ -108,6 +111,14 @@ async def run_test_mode(command: str | None = None) -> None:
             print(f"Handler: {name}")
             print(f"Response:\n{response}")
             print(f"{'='*50}\n")
+        
+        # Test scores handler with a default lab
+        logger.info("Testing scores handler with lab-04")
+        response = await scores.handle_scores("lab-04")
+        print(f"\n{'='*50}")
+        print(f"Handler: scores lab-04")
+        print(f"Response:\n{response}")
+        print(f"{'='*50}\n")
 
     logger.info("Test mode completed")
 
@@ -137,6 +148,20 @@ async def run_production_mode() -> None:
     async def cmd_help(message: Message) -> None:
         """Handle /help command."""
         response = await help.handle_help()
+        await message.answer(response)
+
+    @dp.message(Command("labs"))
+    async def cmd_labs(message: Message) -> None:
+        """Handle /labs command."""
+        response = await labs.handle_labs()
+        await message.answer(response)
+
+    @dp.message(Command("scores"))
+    async def cmd_scores(message: Message) -> None:
+        """Handle /scores command with optional lab argument."""
+        # Extract lab argument from command text
+        lab = message.text.split(maxsplit=1)[1] if len(message.text.split()) > 1 else None
+        response = await scores.handle_scores(lab)
         await message.answer(response)
 
     @dp.message()

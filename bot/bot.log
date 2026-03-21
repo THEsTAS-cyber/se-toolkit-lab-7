@@ -1,0 +1,2 @@
+nohup: ignoring input
+2026-03-21 20:28:54,250 - __main__ - ERROR - BOT_TOKEN is not set. Please set it in .env.bot.secret
