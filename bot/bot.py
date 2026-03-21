@@ -14,10 +14,10 @@ from typing import Any
 
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command, CommandStart
-from aiogram.types import Message
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from config import settings
-from handlers import health, help, labs, scores, start
+from handlers import health, help, labs, message as message_handler, scores, start
 
 logging.basicConfig(
     level=logging.INFO,
@@ -39,29 +39,6 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-async def handle_message(message: Message, command: str) -> None:
-    """Handle incoming message based on command."""
-    logger.info(f"Received command: {command}")
-
-    if command == "health":
-        response = await health.handle_health()
-    elif command == "start":
-        response = await start.handle_start()
-    elif command == "help":
-        response = await help.handle_help()
-    elif command == "labs":
-        response = await labs.handle_labs()
-    elif command.startswith("scores"):
-        # Extract lab argument if present
-        parts = command.split(maxsplit=1)
-        lab = parts[1] if len(parts) > 1 else None
-        response = await scores.handle_scores(lab)
-    else:
-        response = f"Unknown command: {command}. Use /help for available commands."
-
-    await message.answer(response)
-
-
 async def run_test_mode(command: str | None = None) -> None:
     """Run bot in test mode without Telegram connection.
 
@@ -80,7 +57,7 @@ async def run_test_mode(command: str | None = None) -> None:
     if command:
         # Remove leading slash if present
         command = command.lstrip("/")
-        
+
         if command.startswith("scores"):
             # Extract lab argument if present
             parts = command.split(maxsplit=1)
@@ -99,9 +76,17 @@ async def run_test_mode(command: str | None = None) -> None:
             print(f"Response:\n{response}")
             print(f"{'='*50}\n")
         else:
-            logger.error(f"Unknown command: {command}")
-            print(f"Unknown command: {command}")
-            print(f"Available commands: {', '.join(list(handlers.keys()) + ['scores <lab>'])}")
+            # Try natural language query through intent router
+            logger.info(f"Testing intent router: {command}")
+            try:
+                response = await message_handler.handle_message(command)
+                print(f"\n{'='*50}")
+                print(f"Intent: {command}")
+                print(f"Response:\n{response}")
+                print(f"{'='*50}\n")
+            except Exception as e:
+                logger.error(f"Intent router error: {e}")
+                print(f"Error: {e}")
     else:
         # Run all handlers
         logger.info("Testing all handlers")
@@ -111,7 +96,7 @@ async def run_test_mode(command: str | None = None) -> None:
             print(f"Handler: {name}")
             print(f"Response:\n{response}")
             print(f"{'='*50}\n")
-        
+
         # Test scores handler with a default lab
         logger.info("Testing scores handler with lab-04")
         response = await scores.handle_scores("lab-04")
@@ -136,7 +121,9 @@ async def run_production_mode() -> None:
     async def cmd_start(message: Message) -> None:
         """Handle /start command."""
         response = await start.handle_start()
-        await message.answer(response)
+        # Add inline keyboard
+        keyboard = start.get_start_keyboard()
+        await message.answer(response, reply_markup=keyboard)
 
     @dp.message(Command("health"))
     async def cmd_health(message: Message) -> None:
@@ -165,10 +152,48 @@ async def run_production_mode() -> None:
         await message.answer(response)
 
     @dp.message()
-    async def echo_handler(message: Message) -> None:
-        """Echo handler for unknown messages."""
-        response = "I received your message. Use /help for available commands."
-        await message.answer(response)
+    async def handle_text_message(message: Message) -> None:
+        """Handle natural language messages with intent routing."""
+        text = message.text or ""
+        
+        # Skip if it looks like a command (shouldn't happen, but just in case)
+        if text.startswith("/"):
+            return
+        
+        # Show "typing" status
+        await message.chat.action(action="typing")
+        
+        # Route through LLM
+        try:
+            response = await message_handler.handle_message(text)
+            await message.answer(response)
+        except Exception as e:
+            logger.error(f"Error handling message: {e}")
+            await message.answer(
+                "Sorry, I encountered an error processing your request. "
+                "Please try again or use /help for available commands."
+            )
+
+    @dp.callback_query()
+    async def handle_callback(callback: CallbackQuery) -> None:
+        """Handle inline keyboard button clicks."""
+        data = callback.data or ""
+        
+        if data == "cmd_health":
+            response = await health.handle_health()
+        elif data == "cmd_labs":
+            response = await labs.handle_labs()
+        elif data == "cmd_help":
+            response = await help.handle_help()
+        elif data == "cmd_scores_lab04":
+            response = await scores.handle_scores("lab-04")
+        elif data == "cmd_top_lab04":
+            response = await message_handler.handle_message("top 5 students in lab 04")
+        else:
+            response = "Unknown action."
+        
+        await callback.message.answer(response)
+        await callback.answer()
 
     logger.info("Bot is starting in production mode...")
     await bot.delete_webhook(drop_pending_updates=True)
