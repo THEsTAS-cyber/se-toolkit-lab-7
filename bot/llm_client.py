@@ -8,6 +8,7 @@ from typing import Any, Callable
 import httpx
 
 from config import settings
+from tool_schemas import TOOL_SCHEMAS
 
 logger = logging.getLogger(__name__)
 
@@ -70,8 +71,11 @@ class LLMClient:
         logger.debug(f"Registered tool: {name}")
 
     def get_tool_schemas(self) -> list[dict[str, Any]]:
-        """Get all registered tools in OpenAI-compatible format."""
-        return [tool.to_schema() for tool in self.tools.values()]
+        """Get all registered tools in OpenAI-compatible format.
+        
+        Returns the statically defined TOOL_SCHEMAS from tool_schemas.py.
+        """
+        return TOOL_SCHEMAS
 
     async def chat(
         self,

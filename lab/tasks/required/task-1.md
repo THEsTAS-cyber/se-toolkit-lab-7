@@ -107,13 +107,11 @@ After verifying with `--test`, deploy the bot on your VM and check it responds i
    git pull
    cd bot && uv sync
    ```
-
 2. Start the bot (kills any previous instance):
 
    ```terminal
    pkill -f "bot.py" 2>/dev/null; nohup uv run bot.py > bot.log 2>&1 &
    ```
-
 3. Open Telegram and send `/start` to your bot. You should see the welcome message.
 
 **If the bot doesn't respond in Telegram:**

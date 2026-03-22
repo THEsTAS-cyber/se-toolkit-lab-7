@@ -16,6 +16,7 @@ import sys
 from typing import Any
 
 from llm_client import LLMClient
+from tool_schemas import TOOL_SCHEMAS, TOOL_NAMES
 from tools import (
     get_completion_rate,
     get_groups,
@@ -31,17 +32,20 @@ from tools import (
 logger = logging.getLogger(__name__)
 
 # Explicit list of all 9 tools for discovery
-ALL_TOOLS = [
-    "get_items",
-    "get_learners", 
-    "get_scores",
-    "get_pass_rates",
-    "get_timeline",
-    "get_groups",
-    "get_top_learners",
-    "get_completion_rate",
-    "trigger_sync",
-]
+ALL_TOOLS = TOOL_NAMES
+
+# Map tool names to functions
+TOOL_FUNCTIONS = {
+    "get_items": get_items,
+    "get_learners": get_learners,
+    "get_scores": get_scores,
+    "get_pass_rates": get_pass_rates,
+    "get_timeline": get_timeline,
+    "get_groups": get_groups,
+    "get_top_learners": get_top_learners,
+    "get_completion_rate": get_completion_rate,
+    "trigger_sync": trigger_sync,
+}
 
 # System prompt for the LLM
 SYSTEM_PROMPT = """You are a helpful assistant for a Learning Management System (LMS).
