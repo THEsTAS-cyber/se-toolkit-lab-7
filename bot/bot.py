@@ -24,6 +24,7 @@ from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMar
 
 from config import settings
 from handlers import health, help, labs, message as message_handler, scores, start
+from tool_schemas import TOOL_SCHEMAS, TOOL_NAMES
 from tools import (
     get_completion_rate,
     get_groups,
@@ -54,6 +55,9 @@ LLM_TOOLS = [
     get_completion_rate,
     trigger_sync,
 ]
+
+# All 9 tool schemas for LLM function calling
+LLM_TOOL_SCHEMAS = TOOL_SCHEMAS
 
 
 def parse_args() -> argparse.Namespace:

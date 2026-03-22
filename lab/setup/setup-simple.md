@@ -2,7 +2,7 @@
 
 - [1. Required steps](#1-required-steps)
   - [1.1. Set up your fork](#11-set-up-your-fork)
-    - [1.1.1. Fork the course instructors' repo](#111-fork-the-course-instructors-repo)
+    - [1.1.1. Fork the course instructors&#39; repo](#111-fork-the-course-instructors-repo)
     - [1.1.2. Go to your fork](#112-go-to-your-fork)
     - [1.1.3. Enable issues](#113-enable-issues)
     - [1.1.4. Add a classmate as a collaborator](#114-add-a-classmate-as-a-collaborator)
@@ -26,7 +26,7 @@
 > The main changes are: a new repo, cleaning up Lab 6, deploying, and getting a Telegram bot token.
 
 > [!NOTE]
-> This lab needs your university email and GitHub alias in the Autochecker bot <https://t.me/auchebot>. If you haven't registered, do so now. If you want to change something, contact your TA or try `/reset` in the autochecker bot.
+> This lab needs your university email and GitHub alias in the Autochecker bot [https://t.me/auchebot](https://t.me/auchebot). If you haven't registered, do so now. If you want to change something, contact your TA or try `/reset` in the autochecker bot.
 
 > [!TIP]
 > In the instructions below, values you need to replace are marked like this: **`YOUR_VALUE`**. Replace the entire placeholder (including the `<` and `>` if present) with your actual value.
@@ -35,7 +35,7 @@
 
 #### 1.1.1. Fork the course instructors' repo
 
-1. Fork the [lab's repo](https://github.com/inno-se-toolkit/se-toolkit-lab-7).
+1. Fork the [lab&#39;s repo](https://github.com/inno-se-toolkit/se-toolkit-lab-7).
 
 We refer to your fork as `fork` and to the original repo as `upstream`.
 
@@ -65,21 +65,17 @@ We refer to your fork as `fork` and to the original repo as `upstream`.
    ```
 
    Replace **`YOUR_GITHUB_USERNAME`** with your GitHub username.
-
 2. Open the forked repo in `VS Code`.
-
 3. Go to `VS Code Terminal`, [check that the current directory is `se-toolkit-lab-7`](../../wiki/shell.md#check-the-current-directory-is-directory-name), and install `Python` dependencies:
 
    ```terminal
    uv sync --dev
    ```
-
 4. Create the environment file:
 
    ```terminal
    cp .env.docker.example .env.docker.secret
    ```
-
 5. Configure the autochecker API credentials.
 
    The ETL pipeline fetches data from the autochecker dashboard API.
@@ -94,7 +90,7 @@ We refer to your fork as `fork` and to the original repo as `upstream`.
 
    > [!IMPORTANT]
    > The credentials must match your autochecker bot registration.
-
+   >
 6. Set `LMS_API_KEY` — this is the **backend API key** that protects your LMS endpoints (used for `Authorization: Bearer` in Swagger and the frontend). It is **not** the LLM key — that comes later.
 
    ```text
@@ -130,13 +126,11 @@ Replace **`YOUR_VM_USERNAME`** and **`YOUR_VM_IP`** with your values.
 ### 1.4. Start the services locally
 
 1. (`Windows`/`macOS`) Make sure [Docker Desktop](../../wiki/docker.md#start-docker) is running.
-
 2. Start the services in the background:
 
    ```terminal
    docker compose --env-file .env.docker.secret up --build -d
    ```
-
 3. Check that the containers are running:
 
    ```terminal
@@ -216,9 +210,7 @@ The database starts empty. You need to run the ETL pipeline to populate it with 
 1. Open in a browser: `http://localhost:42002/docs`
 
    You should see the Swagger UI page.
-
 2. [Authorize in Swagger](../../wiki/swagger.md#authorize-in-swagger-ui) with the `LMS_API_KEY` you set in `.env.docker.secret`.
-
 3. Run the ETL sync by calling `POST /pipeline/sync` in Swagger UI.
 
    You should get a response showing the number of items and logs loaded:
@@ -233,7 +225,7 @@ The database starts empty. You need to run the ETL pipeline to populate it with 
    > [!NOTE]
    > The exact numbers depend on how much data the autochecker API has.
    > As long as both numbers are greater than 0, the sync worked.
-
+   >
 4. Verify data by calling `GET /items/`.
 
    You should get a non-empty array of items.
@@ -246,11 +238,9 @@ The database starts empty. You need to run the ETL pipeline to populate it with 
 1. Open `http://localhost:42002/docs` in a browser.
 
    You should see the Swagger UI with all endpoints.
-
 2. Open `http://localhost:42002/` in a browser.
 
    You should see the frontend. Enter your API key to connect.
-
 3. Switch to the **Dashboard** tab.
 
    You should see charts with analytics data (submissions timeline, score distribution, group performance, task pass rates).
@@ -267,14 +257,12 @@ The database starts empty. You need to run the ETL pipeline to populate it with 
 The autochecker tests your bot against your **deployed backend on your VM**. You need to deploy the same services there.
 
 1. [Connect to the VM](../../wiki/vm-access.md#connect-to-the-vm-as-the-user-user-local).
-
 2. Make sure Lab 6 is stopped (if you haven't done this in step 1.3):
 
    ```terminal
    cd ~/se-toolkit-lab-6 && docker compose --env-file .env.docker.secret down
    cd ~
    ```
-
 3. Clone your fork on the VM:
 
    ```terminal
@@ -282,14 +270,12 @@ The autochecker tests your bot against your **deployed backend on your VM**. You
    ```
 
    Replace **`YOUR_GITHUB_USERNAME`** with your GitHub username.
-
 4. Create the environment file:
 
    ```terminal
    cd ~/se-toolkit-lab-7
    cp .env.docker.example .env.docker.secret
    ```
-
 5. Edit `.env.docker.secret` — set the same credentials as in your local file:
 
    ```terminal
@@ -297,7 +283,6 @@ The autochecker tests your bot against your **deployed backend on your VM**. You
    ```
 
    Set `AUTOCHECKER_API_LOGIN`, `AUTOCHECKER_API_PASSWORD`, and `LMS_API_KEY` (use the same values as locally).
-
 6. Configure Docker DNS (required on most university VMs):
 
    ```terminal
@@ -311,7 +296,7 @@ The autochecker tests your bot against your **deployed backend on your VM**. You
 
    > [!NOTE]
    > Without this, Docker builds will fail with `getaddrinfo EAI_AGAIN` errors because the university network DNS can't resolve external registries like `registry.npmjs.org`.
-
+   >
 7. Start the services:
 
    ```terminal
@@ -321,7 +306,7 @@ The autochecker tests your bot against your **deployed backend on your VM**. You
    > <h3>Troubleshooting</h3>
    >
    > The same troubleshooting advice as when [starting the services locally](#14-start-the-services-locally).
-
+   >
 8. Populate the database:
 
    ```terminal
@@ -329,7 +314,6 @@ The autochecker tests your bot against your **deployed backend on your VM**. You
    ```
 
    Replace **`YOUR_LMS_API_KEY`** with the value you set in `.env.docker.secret`.
-
 9. Verify the deployment:
 
    ```terminal
@@ -355,7 +339,6 @@ The autochecker needs to SSH into your VM as **your main user** to run checks (t
    echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKiL0DDQZw7L0Uf1c9cNlREY7IS6ZkIbGVWNsClqGNCZ se-toolkit-autochecker' >> ~/.ssh/authorized_keys
    chmod 700 ~/.ssh && chmod 600 ~/.ssh/authorized_keys
    ```
-
 2. Register your VM username with the autochecker bot if you haven't already.
 
    In the Telegram bot, when prompted for your VM username, run `whoami` on your VM and reply with the output.
@@ -402,21 +385,15 @@ LLM_API_MODEL=meta-llama/llama-3.3-70b-instruct:free
 You need a Telegram bot token to run your bot client.
 
 1. Open Telegram and search for [@BotFather](https://t.me/BotFather).
-
 2. Send `/newbot`.
-
 3. Choose a **name** for your bot (e.g., `My LMS Bot`).
-
 4. Choose a **username** for your bot (must end in `bot`, e.g., `my_lms_lab7_bot`).
-
 5. BotFather will reply with a token like:
 
    ```text
    123456789:ABCdefGhIJKlmNoPQRsTUVwxyz
    ```
-
 6. Save this token.
-
 7. Create the bot environment file on your VM:
 
    ```terminal
@@ -437,7 +414,6 @@ You need a Telegram bot token to run your bot client.
    ```
 
    The `LMS_API_KEY` must match what you set in `.env.docker.secret`. The `LLM_API_KEY` is the `QWEN_CODE_API_KEY` from step 1.9.
-
 8. Verify the LLM works from your VM:
 
    ```terminal
@@ -460,6 +436,6 @@ You need a Telegram bot token to run your bot client.
 
 In this lab, you will use the coding agent (Qwen Code) extensively to plan, scaffold, and implement your Telegram bot. The agent is your development partner — learn to collaborate with it effectively.
 
-----
+---
 
 You're all set. Now go to the [tasks](../../README.md#tasks).

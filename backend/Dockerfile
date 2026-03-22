@@ -2,7 +2,7 @@
 # Also see https://docs.astral.sh/uv/guides/integration/docker/
 
 # ---
-# Stage 1: build the application in the `/app` directory.
+# Stage 1: build the application in the /app directory.
 # ---
 
 ARG REGISTRY_PREFIX=harbor.pg.innopolis.university/docker-hub-cache/
@@ -14,7 +14,7 @@ ENV UV_NO_DEV=1
 
 # Disable Python downloads, because we want to use the system interpreter
 # across both images. If using a managed Python version, it needs to be
-# copied from the build image into the final image; see `standalone.Dockerfile`
+# copied from the build image into the final image; see standalone.Dockerfile
 # for an example.
 ENV UV_PYTHON_DOWNLOADS=0
 
@@ -23,13 +23,14 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     --mount=type=bind,source=backend/pyproject.toml,target=backend/pyproject.toml \
+    --mount=type=bind,source=bot/pyproject.toml,target=bot/pyproject.toml \
     uv sync --locked --no-install-project
 
 COPY backend /app/backend
 COPY pyproject.toml uv.lock /app/
 
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked
+    uv sync --reinstall
 
 # ---
 # Stage 2: use a final image without uv
@@ -38,7 +39,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 ARG REGISTRY_PREFIX=harbor.pg.innopolis.university/docker-hub-cache/
 FROM ${REGISTRY_PREFIX}python:3.14.2-slim-bookworm
 # It is important to use the image that matches the builder, as the path to the
-# Python executable must be the same, e.g., using `python:3.11-slim-bookworm`
+# Python executable must be the same, e.g., using python:3.11-slim-bookworm
 # will fail.
 
 # # Set environment variables for Python and application
@@ -60,7 +61,7 @@ ENV PATH="/app/.venv/bin:$PATH"
 # Use the non-root user to run our application
 USER nonroot
 
-# Use `/app` as the working directory
+# Use /app as the working directory
 WORKDIR /app
 
 # Run the FastAPI application

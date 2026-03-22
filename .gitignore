@@ -13,3 +13,9 @@ __pycache__/
 tmp
 
 **/settings.local.json
+
+# Qwen Code
+.qwen/
+.agents/
+QWEN.md
+.claude/
