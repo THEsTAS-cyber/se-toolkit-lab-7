@@ -91,3 +91,78 @@ By the end of this lab, you should be able to say:
 2. [Backend Integration](./lab/tasks/required/task-2.md) — P0: slash commands + real data
 3. [Intent-Based Natural Language Routing](./lab/tasks/required/task-3.md) — P1: LLM tool use
 4. [Containerize and Document](./lab/tasks/required/task-4.md) — P3: containerize + deploy
+
+---
+
+## Deploy
+
+### Prerequisites
+
+- VM with Docker and Docker Compose installed
+- `.env.docker.secret` configured with required variables:
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `BOT_TOKEN` | Telegram bot token from @BotFather | `123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11` |
+| `LMS_API_KEY` | Backend API authentication key | `your-secret-key` |
+| `LLM_API_KEY` | LLM API key for intent routing | `your-llm-key` |
+| `LLM_API_BASE_URL` | LLM API endpoint | `http://host.docker.internal:42005/v1` |
+| `LLM_API_MODEL` | LLM model name | `coder-model` |
+
+### Start
+
+```bash
+cd ~/se-toolkit-lab-7
+
+# Stop any running bot process (if running outside Docker)
+pkill -f "bot.py" 2>/dev/null
+
+# Start all services (backend, postgres, caddy, bot)
+docker compose --env-file .env.docker.secret up --build -d
+
+# Check status — all services should be "Up"
+docker compose ps
+
+# View bot logs
+docker compose logs bot --tail 50
+```
+
+### Verify
+
+1. **Backend healthy:**
+   ```bash
+   curl -sf http://localhost:42002/docs
+   ```
+
+2. **Bot container running:**
+   ```bash
+   docker compose ps bot
+   ```
+
+3. **Test in Telegram:**
+   - `/start` — welcome message with inline keyboard
+   - `/health` — backend status
+   - `/labs` — list of available labs
+   - `/scores lab-04` — pass rates for lab-04
+   - "what labs are available?" — natural language query
+   - "which lab has the lowest pass rate?" — multi-step reasoning
+
+### Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| Bot container restarting | `docker compose logs bot` — check for import errors or missing env vars |
+| LLM queries fail | Ensure `LLM_API_BASE_URL` uses `host.docker.internal` (not `localhost`) |
+| Backend not found | `LMS_API_BASE_URL` must be `http://backend:8000` (Docker service name) |
+| "BOT_TOKEN is required" | Add `BOT_TOKEN` to `.env.docker.secret` |
+| Build fails at `uv sync` | Ensure `uv.lock` exists and is up to date |
+
+### Stop
+
+```bash
+# Stop all services
+docker compose --env-file .env.docker.secret down
+
+# Stop and remove volumes (database will be deleted!)
+docker compose --env-file .env.docker.secret down -v
+```
