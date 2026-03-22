@@ -31,6 +31,23 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+  
+  bot:
+    build:
+      context: .
+      dockerfile: bot/Dockerfile
+    restart: unless-stopped
+    networks:
+      - lms-network              # ← 1. Сеть для связи с backend
+    environment:                 # ← 2. Переменные окружения
+      - BOT_TOKEN=${BOT_TOKEN}
+      - LMS_API_BASE_URL=http://backend:8000  # ← Важно: не localhost!
+      - LMS_API_KEY=${LMS_API_KEY}
+      - LLM_API_BASE_URL=${LLM_API_BASE_URL}
+      - LLM_API_KEY=${LLM_API_KEY}
+      - LLM_API_MODEL=${LLM_API_MODEL}
+    depends_on:                  # ← 3. Запуск после backend
+      - backend
 
   postgres:
     image: ${REGISTRY_PREFIX:-harbor.pg.innopolis.university/docker-hub-cache/}postgres:18.3-alpine
